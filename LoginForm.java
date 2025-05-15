@@ -1,16 +1,21 @@
-package org.example;
+package login;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import org.example.AdminDashboard;
+
 public class LoginForm extends JFrame {
 	private JTextField tfUsername;
 	private JPasswordField pfPassword;
+	private JLabel lbError;
+	private JCheckBox cbRemember;
+	private String role; // <-- thêm biến này
+	
 	
 	public LoginForm() {
 		setTitle("Đăng nhập hệ thống");
@@ -23,14 +28,8 @@ public class LoginForm extends JFrame {
 	}
 	
 	private void init() {
-		
 		JLayeredPane layeredPane = new JLayeredPane();
 		layeredPane.setPreferredSize(new Dimension(500, 350));
-		
-		JLabel background = new JLabel(new ImageIcon("C:/Users/ASUS/Downloads/abc.jpg"));
-		background.setBounds(0, 0, 500, 350);
-		layeredPane.add(background, Integer.valueOf(0));
-		
 		
 		
 		JPanel content = new JPanel(new BorderLayout(10, 10));
@@ -42,49 +41,99 @@ public class LoginForm extends JFrame {
 		title.setForeground(Color.WHITE);
 		content.add(title, BorderLayout.NORTH);
 		
-		JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+		JPanel inputPanel = new JPanel(new GridBagLayout());
 		inputPanel.setOpaque(false);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(5, 5, 5, 5);
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 		
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.weightx = 0.3;
 		JLabel lbUser = new JLabel("Tên đăng nhập:");
+		title.setForeground(new Color(173, 216, 230)); // màu vàng (hoặc chọn màu khác)
 		lbUser.setForeground(Color.WHITE);
-		tfUsername = new JTextField();
+		inputPanel.add(lbUser, gbc);
 		
+		gbc.gridx = 1;
+		gbc.weightx = 0.7;
+		tfUsername = new JTextField();
+		tfUsername.setPreferredSize(new Dimension(200, 30));
+		inputPanel.add(tfUsername, gbc);
+		
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.weightx = 0.3;
 		JLabel lbPass = new JLabel("Mật khẩu:");
 		lbPass.setForeground(Color.WHITE);
+		inputPanel.add(lbPass, gbc);
+		
+		gbc.gridx = 1;
+		gbc.weightx = 0.7;
+		
+		JPanel passPanel = new JPanel(null);
+		passPanel.setOpaque(false);
+		passPanel.setPreferredSize(new Dimension(280, 30));
+		
 		pfPassword = new JPasswordField();
 		pfPassword.setEchoChar('•');
+		pfPassword.setBounds(0, 0, 250, 30);
 		
-		JPanel passPanel = new JPanel(new BorderLayout());
-		passPanel.setOpaque(false);
-		passPanel.add(pfPassword, BorderLayout.CENTER);
+		ImageIcon iconShow = new ImageIcon(new ImageIcon("G:/icons8-eye-100.png").getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
+		ImageIcon iconHide = new ImageIcon(new ImageIcon("G:/icons8-invisible-80.png").getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
 		
-		JButton eyeButton = new JButton("mo");
-		eyeButton.setPreferredSize(new Dimension(40, 30));
+		JButton eyeButton = new JButton(iconHide);
+		eyeButton.setBounds(255, 6, 18, 18);
 		eyeButton.setFocusPainted(false);
 		eyeButton.setContentAreaFilled(false);
-		eyeButton.setFont(new Font("Arial", Font.PLAIN, 14));
+		eyeButton.setBorderPainted(false);
+		
 		eyeButton.addActionListener(e -> {
 			if (pfPassword.getEchoChar() != (char) 0) {
 				pfPassword.setEchoChar((char) 0);
-				eyeButton.setText("dong");
+				eyeButton.setIcon(iconShow);
 			} else {
 				pfPassword.setEchoChar('•');
-				eyeButton.setText("mo");
+				eyeButton.setIcon(iconHide);
 			}
 		});
-		passPanel.add(eyeButton, BorderLayout.EAST);
 		
-		inputPanel.add(lbUser);
-		inputPanel.add(tfUsername);
-		inputPanel.add(lbPass);
-		inputPanel.add(passPanel);
+		passPanel.add(pfPassword);
+		passPanel.add(eyeButton);
+		
+		inputPanel.add(passPanel, gbc);
+		
+		gbc.gridx = 1;
+		gbc.gridy = 2;
+		gbc.anchor = GridBagConstraints.WEST;
+		cbRemember = new JCheckBox("Ghi nhớ mật khẩu");
+		cbRemember.setOpaque(false);
+		cbRemember.setForeground(Color.WHITE);
+		inputPanel.add(cbRemember, gbc);
+		
+		gbc.gridy = 3;
+		lbError = new JLabel(" ");
+		lbError.setForeground(Color.RED);
+		lbError.setFont(new Font("Arial", Font.ITALIC, 12));
+		inputPanel.add(lbError, gbc);
 		
 		JButton btnLogin = new JButton("Đăng nhập");
 		btnLogin.setBackground(new Color(30, 144, 255));
 		btnLogin.setForeground(Color.WHITE);
 		btnLogin.setFont(new Font("Arial", Font.BOLD, 14));
 		btnLogin.setFocusPainted(false);
+		btnLogin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		btnLogin.addActionListener(e -> login());
+		
+		btnLogin.addMouseListener(new java.awt.event.MouseAdapter() {
+			public void mouseEntered(java.awt.event.MouseEvent evt) {
+				btnLogin.setBackground(new Color(0, 120, 215));
+			}
+			public void mouseExited(java.awt.event.MouseEvent evt) {
+				btnLogin.setBackground(new Color(30, 144, 255));
+			}
+		});
 		
 		content.add(inputPanel, BorderLayout.CENTER);
 		content.add(btnLogin, BorderLayout.SOUTH);
@@ -98,6 +147,11 @@ public class LoginForm extends JFrame {
 		String username = tfUsername.getText().trim();
 		String password = new String(pfPassword.getPassword());
 		
+		if (username.isEmpty() || password.isEmpty()) {
+			lbError.setText("Vui lòng nhập đầy đủ thông tin!");
+			return;
+		}
+		
 		try (Connection conn = Databaselog.getConnection()) {
 			String sql = "SELECT * FROM users WHERE username = ?";
 			PreparedStatement ps = conn.prepareStatement(sql);
@@ -107,23 +161,26 @@ public class LoginForm extends JFrame {
 			if (rs.next()) {
 				String hashedPass = rs.getString("password");
 				if (hashedPass.equals(Encryptor.encrypt(password))) {
-					JOptionPane.showMessageDialog(this, "Đăng nhập thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-					new AdminDashboard(username);
+					JOptionPane.showMessageDialog(this, "Đăng nhập thành công!", "Th\u00f4ng b\u00e1o", JOptionPane.INFORMATION_MESSAGE);
+					if (cbRemember.isSelected()) {
+						// Luu thong tin neu can
+					}
+					if ("Admin".equalsIgnoreCase(role)) {
+						new AdminDashboard(username);}
+					 else {
+						new AdminDashboard(username);
+					}
+					
 					dispose();
 				} else {
-					JOptionPane.showMessageDialog(this, "Sai mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+					lbError.setText("Sai mật khẩu.");
 				}
 			} else {
-				JOptionPane.showMessageDialog(this, "Tài khoản không tồn tại. Chuyển sang trang đăng ký.", "Thông báo", JOptionPane.WARNING_MESSAGE);
-				new RegisterForm();
-				dispose();
+				lbError.setText("Tài khoản không tồn tại.");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Lỗi khi đăng nhập: " + e.getMessage(), "Lỗi hệ thống", JOptionPane.ERROR_MESSAGE);
+			lbError.setText("Lỗi hệ thống: " + e.getMessage());
 		}
-	}
-	public static void main(String[] args) {
-		new LoginForm();
 	}
 }

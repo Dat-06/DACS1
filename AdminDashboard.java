@@ -1,6 +1,7 @@
 package org.example;// AdminDashboard.java
 import javax.swing.*;
 import java.awt.*;
+import login.LoginForm;
 
 public class AdminDashboard extends JFrame {
 	private JPanel mainPanel;
@@ -24,6 +25,7 @@ public class AdminDashboard extends JFrame {
 		
 		JMenu menuReport = new JMenu("Báo cáo");
 		JMenuItem miReport = new JMenuItem("Thống kê");
+		JMenuItem miHistory = new JMenuItem("Lịch Sử Giao Dịch");
 		
 		JMenu menuExit = new JMenu("Hệ thống");
 		JMenuItem miLogout = new JMenuItem("Đăng xuất");
@@ -33,6 +35,7 @@ public class AdminDashboard extends JFrame {
 		miPackage.addActionListener(e -> cardLayout.show(mainPanel, "package"));
 		miBilling.addActionListener(e -> cardLayout.show(mainPanel, "billing"));
 		miReport.addActionListener(e -> cardLayout.show(mainPanel, "report"));
+		miHistory.addActionListener(e -> cardLayout.show(mainPanel, "history"));
 		miLogout.addActionListener(e -> {
 			int choice = JOptionPane.showConfirmDialog(this, "Bạn muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION);
 			if (choice == JOptionPane.YES_OPTION) {
@@ -45,7 +48,9 @@ public class AdminDashboard extends JFrame {
 		menuManage.add(miCustomer); menuManage.add(miPackage);
 		menuBill.add(miBilling);
 		menuReport.add(miReport);
+		menuReport.add(miHistory);
 		menuExit.add(miLogout);
+		
 		
 		menuBar.add(menuManage);
 		menuBar.add(menuBill);
@@ -62,6 +67,7 @@ public class AdminDashboard extends JFrame {
 		mainPanel.add(new PackagePanel(), "package");
 		mainPanel.add(new BillingPanel(), "billing");
 		mainPanel.add(new ReportPanel(), "report");
+		mainPanel.add(new TransactionHistory(), "history" );
 		
 		add(mainPanel, BorderLayout.CENTER);
 		setVisible(true);

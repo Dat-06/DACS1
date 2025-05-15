@@ -1,4 +1,4 @@
-package org.example;// File: Encryptor.java
+package login;// File: Encryptor.java
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
