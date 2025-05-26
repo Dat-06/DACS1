@@ -1,7 +1,14 @@
-package org.example;// AdminDashboard.java
+package main;// AdminDashboard.java
 import javax.swing.*;
 import java.awt.*;
+
+import bieudo.ChartPanelExample;
+import goicuoc.PackagePanel;
 import login.LoginForm;
+import admin.BillingPanel;
+import admin.CustomerPanel;
+import admin.ReportPanel;
+import admin.TransactionHistory;
 
 public class AdminDashboard extends JFrame {
 	private JPanel mainPanel;
@@ -25,6 +32,7 @@ public class AdminDashboard extends JFrame {
 		
 		JMenu menuReport = new JMenu("Báo cáo");
 		JMenuItem miReport = new JMenuItem("Thống kê");
+		JMenuItem miBieudo = new JMenuItem("Biểu Đồ");
 		JMenuItem miHistory = new JMenuItem("Lịch Sử Giao Dịch");
 		
 		JMenu menuExit = new JMenu("Hệ thống");
@@ -36,6 +44,7 @@ public class AdminDashboard extends JFrame {
 		miBilling.addActionListener(e -> cardLayout.show(mainPanel, "billing"));
 		miReport.addActionListener(e -> cardLayout.show(mainPanel, "report"));
 		miHistory.addActionListener(e -> cardLayout.show(mainPanel, "history"));
+		miBieudo.addActionListener(e -> cardLayout.show(mainPanel, "bieudo"));
 		miLogout.addActionListener(e -> {
 			int choice = JOptionPane.showConfirmDialog(this, "Bạn muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION);
 			if (choice == JOptionPane.YES_OPTION) {
@@ -45,12 +54,16 @@ public class AdminDashboard extends JFrame {
 		});
 		
 		// === Thêm vào menu bar ===
-		menuManage.add(miCustomer); menuManage.add(miPackage);
+		menuManage.add(miCustomer);
+		menuManage.add(miPackage);
+		
 		menuBill.add(miBilling);
+		
 		menuReport.add(miReport);
 		menuReport.add(miHistory);
-		menuExit.add(miLogout);
+		menuReport.add(miBieudo);
 		
+		menuExit.add(miLogout);
 		
 		menuBar.add(menuManage);
 		menuBar.add(menuBill);
@@ -68,6 +81,7 @@ public class AdminDashboard extends JFrame {
 		mainPanel.add(new BillingPanel(), "billing");
 		mainPanel.add(new ReportPanel(), "report");
 		mainPanel.add(new TransactionHistory(), "history" );
+		mainPanel.add(new ChartPanelExample(),"bieudo");
 		
 		add(mainPanel, BorderLayout.CENTER);
 		setVisible(true);

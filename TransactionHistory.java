@@ -1,10 +1,12 @@
-package org.example;
+package admin;
+
+import ketnoi.DBConnection;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 
 public class TransactionHistory extends JPanel {
 	private JTable table;
@@ -17,7 +19,8 @@ public class TransactionHistory extends JPanel {
 	}
 	
 	private void initUI() {
-		String[] columns = { "Mã giao dịch", "Tên người dùng", "Gói cước", "Số tiền", "Thời gian", "Trạng thái" };
+		// Thêm 2 cột SDT và Email, sửa tên cột tháng thành Thời gian
+		String[] columns = { "Mã giao dịch", "Tên người dùng", "Số điện thoại", "Email", "Gói cước", "Số tiền", "Thời gian", "Số tháng" };
 		tableModel = new DefaultTableModel(columns, 0);
 		table = new JTable(tableModel);
 		table.setRowHeight(25);
@@ -36,14 +39,18 @@ public class TransactionHistory extends JPanel {
 		JButton btnAdd = new JButton("Thêm");
 		JButton btnEdit = new JButton("Sửa");
 		JButton btnDelete = new JButton("Xóa");
+		JButton btnReload = new JButton("Tải lại");
 		
 		btnAdd.addActionListener(e -> new TransactionForm(this, null));
 		btnEdit.addActionListener(e -> editTransaction());
 		btnDelete.addActionListener(e -> deleteTransaction());
+		btnReload.addActionListener(e -> loadTransactions());
 		
 		btnPanel.add(btnAdd);
 		btnPanel.add(btnEdit);
 		btnPanel.add(btnDelete);
+		btnPanel.add(btnReload);
+		
 		topPanel.add(btnPanel, BorderLayout.EAST);
 		
 		add(topPanel, BorderLayout.NORTH);
@@ -51,25 +58,43 @@ public class TransactionHistory extends JPanel {
 	}
 	
 	public void loadTransactions() {
-		tableModel.setRowCount(0); // clear old data
+		tableModel.setRowCount(0);
 		try (Connection conn = DBConnection.getConnection()) {
-			String sql = "SELECT t.transaction_id, t.username, p.package_name, t.amount, t.time, t.status " +
-					"FROM transactions t JOIN packages p ON t.package_id = p.package_id ORDER BY t.time DESC";
+			String sql = "SELECT t.transaction_id, t.username, u.phone, u.email, p.name AS package_name, t.amount, t.time, t.months " +
+					"FROM transactions t " +
+					"JOIN packages p ON t.package_id = p.id " +
+					"JOIN customers u ON t.username = u.name " +
+					"ORDER BY t.time DESC";
 			PreparedStatement ps = conn.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
 			
+			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+			
 			while (rs.next()) {
+				String transactionId = rs.getString("transaction_id");
+				String username = rs.getString("username");
+				String phone = rs.getString("phone");
+				String email = rs.getString("email");
+				String packageName = rs.getString("package_name");
+				String amount = String.format("%,d VNĐ", rs.getInt("amount")); // format tiền có dấu phẩy
+				Timestamp time = rs.getTimestamp("time");
+				String formattedTime = (time != null) ? sdf.format(time) : "";
+				String months = rs.getInt("months") + " tháng";
+				
 				tableModel.addRow(new Object[]{
-						rs.getString("transaction_id"),
-						rs.getString("username"),
-						rs.getString("package_name"),
-						rs.getString("amount") + " VNĐ",
-						rs.getTimestamp("time").toString(),
-						rs.getString("status")
+						transactionId,
+						username,
+						phone,
+						email,
+						packageName,
+						amount,
+						formattedTime,
+						months
 				});
 			}
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
 		}
 	}
 	
@@ -98,6 +123,7 @@ public class TransactionHistory extends JPanel {
 					JOptionPane.showMessageDialog(this, "Xóa thành công!");
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(this, "Lỗi khi xóa: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+					e.printStackTrace();
 				}
 			}
 		} else {

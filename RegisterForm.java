@@ -1,19 +1,17 @@
 package login;
 
-
-
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 public class RegisterForm extends JFrame {
-	private JTextField tfUsername, tfEmail;
+	private JTextField tfUsername, tfEmail, tfPhone, tfAddress;
 	private JPasswordField pfPassword;
 	
 	public RegisterForm() {
 		setTitle("Đăng ký tài khoản");
-		setSize(500, 370);
+		setSize(500, 420);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setResizable(false);
@@ -23,25 +21,20 @@ public class RegisterForm extends JFrame {
 	
 	private void init() {
 		JLayeredPane layeredPane = new JLayeredPane();
-		layeredPane.setPreferredSize(new Dimension(500, 370));
-		
-		// Ảnh nền
-		JLabel background = new JLabel(new ImageIcon("C:/Users/ASUS/Downloads/abc.jpg"));
-		background.setBounds(0, 0, 500, 370);
-		layeredPane.add(background, Integer.valueOf(0));
-		
+		layeredPane.setPreferredSize(new Dimension(500, 420));
 		
 		// Nội dung chính
 		JPanel content = new JPanel(new BorderLayout(10, 10));
 		content.setOpaque(false);
-		content.setBounds(50, 40, 400, 270);
+		content.setBounds(50, 40, 400, 330);
 		
 		JLabel title = new JLabel("Tạo tài khoản mới", JLabel.CENTER);
 		title.setFont(new Font("Arial", Font.BOLD, 22));
 		title.setForeground(Color.WHITE);
 		content.add(title, BorderLayout.NORTH);
 		
-		JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+		// Thêm các trường: Username, Email, Mật khẩu, SĐT, Địa chỉ
+		JPanel inputPanel = new JPanel(new GridLayout(5, 2, 10, 10));
 		inputPanel.setOpaque(false);
 		
 		JLabel lbUser = new JLabel("Tên đăng nhập:");
@@ -56,12 +49,24 @@ public class RegisterForm extends JFrame {
 		lbPass.setForeground(Color.WHITE);
 		pfPassword = new JPasswordField();
 		
+		JLabel lbPhone = new JLabel("Số điện thoại:");
+		lbPhone.setForeground(Color.WHITE);
+		tfPhone = new JTextField();
+		
+		JLabel lbAddress = new JLabel("Địa chỉ:");
+		lbAddress.setForeground(Color.WHITE);
+		tfAddress = new JTextField();
+		
 		inputPanel.add(lbUser);
 		inputPanel.add(tfUsername);
 		inputPanel.add(lbEmail);
 		inputPanel.add(tfEmail);
 		inputPanel.add(lbPass);
 		inputPanel.add(pfPassword);
+		inputPanel.add(lbPhone);
+		inputPanel.add(tfPhone);
+		inputPanel.add(lbAddress);
+		inputPanel.add(tfAddress);
 		
 		JButton btnRegister = new JButton("Đăng ký");
 		btnRegister.setBackground(new Color(46, 204, 113));
@@ -81,24 +86,43 @@ public class RegisterForm extends JFrame {
 		String username = tfUsername.getText().trim();
 		String email = tfEmail.getText().trim();
 		String password = new String(pfPassword.getPassword());
+		String phone = tfPhone.getText().trim();
+		String address = tfAddress.getText().trim();
 		
+		if (username.isEmpty() || email.isEmpty() || password.isEmpty() || phone.isEmpty() || address.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin!");
+			return;
+		}
 		if (!email.endsWith("@gmail.com")) {
 			JOptionPane.showMessageDialog(this, "Email phải kết thúc bằng @gmail.com");
 			return;
 		}
-		
 		if (!isValidPassword(password)) {
 			JOptionPane.showMessageDialog(this, "Mật khẩu phải có ít nhất 6 ký tự, 1 chữ hoa, 1 số và 1 ký tự đặc biệt");
 			return;
 		}
 		
 		try (Connection conn = Databaselog.getConnection()) {
-			String sql = "INSERT INTO users(username, email, password) VALUES (?, ?, ?)";
-			PreparedStatement ps = conn.prepareStatement(sql);
-			ps.setString(1, username);
-			ps.setString(2, email);
-			ps.setString(3, Encryptor.encrypt(password));
-			ps.executeUpdate();
+			conn.setAutoCommit(false);
+			// 1. Insert vào bảng users
+			String sqlUser = "INSERT INTO users(username, email, password) VALUES (?, ?, ?)";
+			try (PreparedStatement psUser = conn.prepareStatement(sqlUser)) {
+				psUser.setString(1, username);
+				psUser.setString(2, email);
+				psUser.setString(3, Encryptor.encrypt(password));
+				psUser.executeUpdate();
+			}
+			// 2. Insert vào bảng customers
+			String sqlCust = "INSERT INTO customers(id, name, address, phone, email) VALUES (?, ?, ?, ?, ?)";
+			try (PreparedStatement psCust = conn.prepareStatement(sqlCust)) {
+				psCust.setString(1, username);  // dùng username làm customer_id
+				psCust.setString(2, username);  // tên
+				psCust.setString(3, address);
+				psCust.setString(4, phone);
+				psCust.setString(5, email);
+				psCust.executeUpdate();
+			}
+			conn.commit();
 			JOptionPane.showMessageDialog(this, "Đăng ký thành công!");
 			dispose();
 		} catch (Exception ex) {

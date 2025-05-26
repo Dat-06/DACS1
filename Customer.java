@@ -1,16 +1,20 @@
-package org.example;
+package admin;
 
 // model/Customer.java
-
 
 public class Customer {
 	private String id;
 	private String name;
 	private String address;
 	private String phone;
+	private String email;  // thêm email
 	
-	public Customer(String id, String name, String address, String phone) {
-		this.id = id; this.name = name; this.address = address; this.phone = phone;
+	public Customer(String id, String name, String address, String phone, String email) {
+		this.id = id;
+		this.name = name;
+		this.address = address;
+		this.phone = phone;
+		this.email = email;  // gán email
 	}
 	
 	public String getPhone() {
@@ -44,5 +48,14 @@ public class Customer {
 	public void setId(String id) {
 		this.id = id;
 	}
+	
+	// getter email
+	public String getEmail() {
+		return email;
+	}
+	
+	// setter email
+	public void setEmail(String email) {
+		this.email = email;
+	}
 }
-

@@ -1,43 +1,68 @@
-package org.example;// ReportPanel.java
+package admin;
+
+import ketnoi.DBConnection;
+
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 
 public class ReportPanel extends JPanel {
 	private JTextArea reportArea;
+	private JButton loadBtn;
 	
 	public ReportPanel() {
-		setLayout(new BorderLayout());
-		JLabel title = new JLabel("THỐNG KÊ DOANH THU THEO THÁNG", JLabel.CENTER);
-		title.setFont(new Font("Arial", Font.BOLD, 18));
+		setLayout(new BorderLayout(10, 10));
+		
+		JLabel title = new JLabel("THỐNG KÊ DOANH THU THÁNG HIỆN TẠI", JLabel.CENTER);
+		title.setFont(new Font("Arial", Font.BOLD, 20));
+		title.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		add(title, BorderLayout.NORTH);
 		
 		reportArea = new JTextArea();
-		reportArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+		reportArea.setFont(new Font("Monospaced", Font.PLAIN, 16));
 		reportArea.setEditable(false);
+		reportArea.setLineWrap(true);
+		reportArea.setWrapStyleWord(true);
 		add(new JScrollPane(reportArea), BorderLayout.CENTER);
 		
-		JButton loadBtn = new JButton("Tải thống kê");
+		loadBtn = new JButton("Tải báo cáo doanh thu tháng này");
+		loadBtn.setFont(new Font("Arial", Font.BOLD, 16));
 		loadBtn.addActionListener(e -> loadReport());
-		add(loadBtn, BorderLayout.SOUTH);
+		JPanel btnPanel = new JPanel();
+		btnPanel.add(loadBtn);
+		add(btnPanel, BorderLayout.SOUTH);
+		
+		// Tải báo cáo ngay khi khởi tạo
+		loadReport();
 	}
 	
 	private void loadReport() {
 		try (Connection conn = DBConnection.getConnection()) {
-			String sql = "SELECT MONTH(created_at) AS thang, SUM(total) AS doanhthu FROM invoices GROUP BY MONTH(created_at)";
+			java.time.LocalDate today = java.time.LocalDate.now();
+			int currentYear = today.getYear();
+			int currentMonth = today.getMonthValue();
+			
+			String sql = """
+                SELECT SUM(amount) AS doanhthu
+                FROM transactions
+                WHERE YEAR(time) = ? AND MONTH(time) = ?
+            """;
+			
 			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, currentYear);
+			stmt.setInt(2, currentMonth);
+			
 			ResultSet rs = stmt.executeQuery();
 			
-			StringBuilder sb = new StringBuilder();
-			sb.append(String.format("%-10s %-15s\n", "Tháng", "Doanh thu (VNĐ)"));
-			sb.append("===========================\n");
-			
-			while (rs.next()) {
-				sb.append(String.format("%-10d %-15.0f\n", rs.getInt(1), rs.getDouble(2)));
+			double revenue = 0;
+			if (rs.next()) {
+				revenue = rs.getDouble("doanhthu");
 			}
 			
-			reportArea.setText(sb.toString());
+			String result = String.format("Tổng doanh thu tháng %d/%d là: %, .0f VNĐ", currentMonth, currentYear, revenue);
+			reportArea.setText(result);
 		} catch (Exception e) {
+			e.printStackTrace();
 			reportArea.setText("Lỗi truy vấn dữ liệu!");
 		}
 	}

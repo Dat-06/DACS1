@@ -1,81 +1,134 @@
-package org.example;
+package admin;
+
+import ketnoi.DBConnection;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.*;
-import java.util.*;
+import java.text.SimpleDateFormat;
 
 public class TransactionForm extends JDialog {
-	private JTextField txtTransactionId, txtUsername, txtAmount, txtTime, txtStatus;
-	private JComboBox<String> packageCombo;
-	private Map<String, Integer> packageMap = new HashMap<>();
+	private JTextField tfTransactionId;
+	private JTextField tfUsername;
+	private JTextField tfPhone;
+	private JTextField tfEmail;
+	private JComboBox<String> cbPackage;
+	private JTextField tfAmount;
+	private JTextField tfMonths;
+	private JFormattedTextField tfTime;
+	
 	private TransactionHistory parent;
 	private String transactionId;
 	
 	public TransactionForm(TransactionHistory parent, String transactionId) {
+		super((Frame) null, true);
 		this.parent = parent;
 		this.transactionId = transactionId;
+		
 		setTitle(transactionId == null ? "Thêm giao dịch" : "Sửa giao dịch");
-		setModal(true);
 		setSize(400, 400);
-		setLocationRelativeTo(parent);
-		setLayout(new GridLayout(7, 2, 10, 10));
+		setLocationRelativeTo(null);
+		setLayout(new GridBagLayout());
 		
 		initUI();
 		loadPackages();
 		
 		if (transactionId != null) {
 			loadTransactionData();
+			tfTransactionId.setEditable(false);
+		} else {
+			tfTransactionId.setEditable(true);
 		}
 		
 		setVisible(true);
 	}
 	
 	private void initUI() {
-		add(new JLabel("Mã giao dịch:"));
-		txtTransactionId = new JTextField();
-		add(txtTransactionId);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(5,5,5,5);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 		
-		add(new JLabel("Tên người dùng:"));
-		txtUsername = new JTextField();
-		add(txtUsername);
+		// Mã giao dịch
+		gbc.gridx = 0; gbc.gridy = 0;
+		add(new JLabel("Mã giao dịch:"), gbc);
+		tfTransactionId = new JTextField();
+		gbc.gridx = 1; gbc.gridy = 0;
+		add(tfTransactionId, gbc);
 		
-		add(new JLabel("Gói cước:"));
-		packageCombo = new JComboBox<>();
-		add(packageCombo);
+		// Tên người dùng
+		gbc.gridx = 0; gbc.gridy = 1;
+		add(new JLabel("Tên người dùng:"), gbc);
+		tfUsername = new JTextField();
+		gbc.gridx = 1; gbc.gridy = 1;
+		add(tfUsername, gbc);
 		
-		add(new JLabel("Số tiền (VNĐ):"));
-		txtAmount = new JTextField();
-		add(txtAmount);
+		// Số điện thoại
+		gbc.gridx = 0; gbc.gridy = 2;
+		add(new JLabel("Số điện thoại:"), gbc);
+		tfPhone = new JTextField();
+		gbc.gridx = 1; gbc.gridy = 2;
+		add(tfPhone, gbc);
 		
-		add(new JLabel("Thời gian (YYYY-MM-DD HH:MM:SS):"));
-		txtTime = new JTextField();
-		add(txtTime);
+		// Email
+		gbc.gridx = 0; gbc.gridy = 3;
+		add(new JLabel("Email:"), gbc);
+		tfEmail = new JTextField();
+		gbc.gridx = 1; gbc.gridy = 3;
+		add(tfEmail, gbc);
 		
-		add(new JLabel("Trạng thái:"));
-		txtStatus = new JTextField();
-		add(txtStatus);
+		// Gói cước
+		gbc.gridx = 0; gbc.gridy = 4;
+		add(new JLabel("Gói cước:"), gbc);
+		cbPackage = new JComboBox<>();
+		gbc.gridx = 1; gbc.gridy = 4;
+		add(cbPackage, gbc);
 		
+		// Số tiền
+		gbc.gridx = 0; gbc.gridy = 5;
+		add(new JLabel("Số tiền (VNĐ):"), gbc);
+		tfAmount = new JTextField();
+		gbc.gridx = 1; gbc.gridy = 5;
+		add(tfAmount, gbc);
+		
+		// Số tháng
+		gbc.gridx = 0; gbc.gridy = 6;
+		add(new JLabel("Số tháng:"), gbc);
+		tfMonths = new JTextField();
+		gbc.gridx = 1; gbc.gridy = 6;
+		add(tfMonths, gbc);
+		
+		// Thời gian
+		gbc.gridx = 0; gbc.gridy = 7;
+		add(new JLabel("Thời gian (yyyy-MM-dd HH:mm:ss):"), gbc);
+		tfTime = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+		tfTime.setValue(new java.util.Date());
+		gbc.gridx = 1; gbc.gridy = 7;
+		add(tfTime, gbc);
+		
+		// Buttons
+		JPanel btnPanel = new JPanel();
 		JButton btnSave = new JButton("Lưu");
-		btnSave.addActionListener(e -> saveTransaction());
-		add(btnSave);
-		
 		JButton btnCancel = new JButton("Hủy");
+		
+		btnSave.addActionListener(e -> saveTransaction());
 		btnCancel.addActionListener(e -> dispose());
-		add(btnCancel);
+		
+		btnPanel.add(btnSave);
+		btnPanel.add(btnCancel);
+		
+		gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2;
+		add(btnPanel, gbc);
 	}
 	
 	private void loadPackages() {
 		try (Connection conn = DBConnection.getConnection()) {
-			String sql = "SELECT package_id, package_name FROM packages";
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
+			String sql = "SELECT name FROM packages";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				String name = rs.getString("package_name");
-				int id = rs.getInt("package_id");
-				packageCombo.addItem(name);
-				packageMap.put(name, id);
+				cbPackage.addItem(rs.getString("name"));
 			}
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(this, "Lỗi tải gói cước: " + e.getMessage());
@@ -84,80 +137,100 @@ public class TransactionForm extends JDialog {
 	
 	private void loadTransactionData() {
 		try (Connection conn = DBConnection.getConnection()) {
-			String sql = "SELECT * FROM transactions WHERE transaction_id = ?";
+			String sql = "SELECT t.transaction_id, t.username, t.phone, t.email, p.name AS package_name, t.amount, t.time, t.months " +
+					"FROM transactions t JOIN packages p ON t.package_id = p.id WHERE t.transaction_id = ?";
 			PreparedStatement ps = conn.prepareStatement(sql);
 			ps.setString(1, transactionId);
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
-				txtTransactionId.setText(rs.getString("transaction_id"));
-				txtTransactionId.setEnabled(false);
-				txtUsername.setText(rs.getString("username"));
-				txtAmount.setText(rs.getString("amount"));
-				txtTime.setText(rs.getTimestamp("time").toString());
-				txtStatus.setText(rs.getString("status"));
-				
-				int packageId = rs.getInt("package_id");
-				for (Map.Entry<String, Integer> entry : packageMap.entrySet()) {
-					if (entry.getValue() == packageId) {
-						packageCombo.setSelectedItem(entry.getKey());
-						break;
-					}
-				}
+				tfTransactionId.setText(rs.getString("transaction_id"));
+				tfUsername.setText(rs.getString("username"));
+				tfPhone.setText(rs.getString("phone"));
+				tfEmail.setText(rs.getString("email"));
+				cbPackage.setSelectedItem(rs.getString("package_name"));
+				tfAmount.setText(rs.getString("amount"));
+				tfMonths.setText(String.valueOf(rs.getInt("months")));
+				tfTime.setValue(rs.getTimestamp("time"));
 			}
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage());
+			JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu giao dịch: " + e.getMessage());
 		}
 	}
 	
 	private void saveTransaction() {
-		String id = txtTransactionId.getText().trim();
-		String username = txtUsername.getText().trim();
-		String amountStr = txtAmount.getText().trim();
-		String timeStr = txtTime.getText().trim();
-		String status = txtStatus.getText().trim();
-		String packageName = (String) packageCombo.getSelectedItem();
+		String id = tfTransactionId.getText().trim();
+		String username = tfUsername.getText().trim();
+		String phone = tfPhone.getText().trim();
+		String email = tfEmail.getText().trim();
+		String packageName = (String) cbPackage.getSelectedItem();
+		String amountStr = tfAmount.getText().trim();
+		String monthsStr = tfMonths.getText().trim();
+		java.util.Date timeValue = (java.util.Date) tfTime.getValue();
 		
-		if (id.isEmpty() || username.isEmpty() || amountStr.isEmpty() || timeStr.isEmpty() || status.isEmpty()) {
+		if (id.isEmpty() || username.isEmpty() || phone.isEmpty() || email.isEmpty() || packageName == null
+				|| amountStr.isEmpty() || monthsStr.isEmpty() || timeValue == null) {
 			JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin.");
 			return;
 		}
 		
-		try (Connection conn = DBConnection.getConnection()) {
-			int packageId = packageMap.get(packageName);
-			double amount = Double.parseDouble(amountStr);
+		try {
+			int amount = Integer.parseInt(amountStr);
+			int months = Integer.parseInt(monthsStr);
+			Timestamp time = new Timestamp(timeValue.getTime());
 			
-			if (transactionId == null) {
-				// Add
-				String sql = "INSERT INTO transactions (transaction_id, username, package_id, amount, time, status) VALUES (?, ?, ?, ?, ?, ?)";
-				PreparedStatement ps = conn.prepareStatement(sql);
-				ps.setString(1, id);
-				ps.setString(2, username);
-				ps.setInt(3, packageId);
-				ps.setDouble(4, amount);
-				ps.setTimestamp(5, Timestamp.valueOf(timeStr));
-				ps.setString(6, status);
-				ps.executeUpdate();
-				JOptionPane.showMessageDialog(this, "Thêm giao dịch thành công!");
-			} else {
-				// Update
-				String sql = "UPDATE transactions SET username=?, package_id=?, amount=?, time=?, status=? WHERE transaction_id=?";
-				PreparedStatement ps = conn.prepareStatement(sql);
-				ps.setString(1, username);
-				ps.setInt(2, packageId);
-				ps.setDouble(3, amount);
-				ps.setTimestamp(4, Timestamp.valueOf(timeStr));
-				ps.setString(5, status);
-				ps.setString(6, transactionId);
-				ps.executeUpdate();
-				JOptionPane.showMessageDialog(this, "Cập nhật giao dịch thành công!");
+			try (Connection conn = DBConnection.getConnection()) {
+				// Lấy package_id từ tên gói cước
+				String sqlPkg = "SELECT id FROM packages WHERE name = ?";
+				PreparedStatement psPkg = conn.prepareStatement(sqlPkg);
+				psPkg.setString(1, packageName);
+				ResultSet rsPkg = psPkg.executeQuery();
+				String packageId = null;
+				if (rsPkg.next()) {
+					packageId = rsPkg.getString("id");
+				} else {
+					JOptionPane.showMessageDialog(this, "Gói cước không hợp lệ.");
+					return;
+				}
+				
+				if (transactionId == null) {
+					// Insert mới
+					String sqlInsert = "INSERT INTO transactions (transaction_id, username, phone, email, package_id, amount, time, months) " +
+							"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+					PreparedStatement psInsert = conn.prepareStatement(sqlInsert);
+					psInsert.setString(1, id);
+					psInsert.setString(2, username);
+					psInsert.setString(3, phone);
+					psInsert.setString(4, email);
+					psInsert.setString(5, packageId);
+					psInsert.setInt(6, amount);
+					psInsert.setTimestamp(7, time);
+					psInsert.setInt(8, months);
+					psInsert.executeUpdate();
+				} else {
+					// Update
+					String sqlUpdate = "UPDATE transactions SET username = ?, phone = ?, email = ?, package_id = ?, amount = ?, time = ?, months = ? " +
+							"WHERE transaction_id = ?";
+					PreparedStatement psUpdate = conn.prepareStatement(sqlUpdate);
+					psUpdate.setString(1, username);
+					psUpdate.setString(2, phone);
+					psUpdate.setString(3, email);
+					psUpdate.setString(4, packageId);
+					psUpdate.setInt(5, amount);
+					psUpdate.setTimestamp(6, time);
+					psUpdate.setInt(7, months);
+					psUpdate.setString(8, id);
+					psUpdate.executeUpdate();
+				}
+				
+				parent.loadTransactions();
+				JOptionPane.showMessageDialog(this, "Lưu thành công!");
+				dispose();
 			}
 			
-			parent.loadTransactions();
-			dispose();
-			
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Lỗi lưu giao dịch: " + e.getMessage());
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Số tiền và số tháng phải là số nguyên hợp lệ.");
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Lỗi khi lưu dữ liệu: " + ex.getMessage());
 		}
 	}
 }
-

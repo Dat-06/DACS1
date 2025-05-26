@@ -1,4 +1,4 @@
-package org.example;// DBConnection.java
+package ketnoi;// DBConnection.java
 import java.sql.*;
 
 public class DBConnection {

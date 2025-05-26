@@ -2,12 +2,13 @@ package login;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import org.example.AdminDashboard;
+import User.InternetCustomerManager;
+import ketnoi.DBConnection;
+import main.AdminDashboard;
 
 public class LoginForm extends JFrame {
 	private JTextField tfUsername;
@@ -152,8 +153,9 @@ public class LoginForm extends JFrame {
 			return;
 		}
 		
-		try (Connection conn = Databaselog.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			String sql = "SELECT * FROM users WHERE username = ?";
+			
 			PreparedStatement ps = conn.prepareStatement(sql);
 			ps.setString(1, username);
 			ResultSet rs = ps.executeQuery();
@@ -168,7 +170,7 @@ public class LoginForm extends JFrame {
 					if ("Admin".equalsIgnoreCase(role)) {
 						new AdminDashboard(username);}
 					 else {
-						new AdminDashboard(username);
+						new InternetCustomerManager(username);
 					}
 					
 					dispose();
