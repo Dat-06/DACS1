@@ -1,4 +1,7 @@
+// Đầu file
 package User;
+
+
 
 import ketnoi.DBConnection;
 
@@ -17,6 +20,7 @@ public class ServicePanel extends JPanel {
 	
 	public ServicePanel(TransactionHistoryPanel historyPanel) {
 		this.historyPanel = historyPanel;
+		// ... giữ nguyên code bên dưới ...
 		
 		setLayout(new BorderLayout());
 		
@@ -27,7 +31,7 @@ public class ServicePanel extends JPanel {
 			JButton button = new JButton(item);
 			button.setPreferredSize(new Dimension(150, 40));
 			button.addActionListener(e -> {
-				String type = item.replace("Gói ", "").toLowerCase(); // lấy ngày, tháng, năm
+				String type = item.replace("Gói ", "").toLowerCase(); // Lấy 'ngày', 'tháng', 'năm'
 				loadPackages(type);
 			});
 			topMenu.add(button);
@@ -74,16 +78,18 @@ public class ServicePanel extends JPanel {
 		contentPanel.removeAll();
 		
 		String query = "SELECT * FROM packages WHERE type = ?";
-		try (Connection conn = DBConnection.getConnection();
-		     PreparedStatement stmt = conn.prepareStatement(query)) {
+			try (Connection conn = DBConnection.getConnection();
+			     PreparedStatement stmt = conn.prepareStatement(query)) {
 			
 			stmt.setString(1, type);
 			ResultSet rs = stmt.executeQuery();
 			
 			while (rs.next()) {
 				String name = rs.getString("name");
-				String duration = rs.getString("duration_days");
+				String duration = rs.getString("duration");
 				double data = rs.getDouble("data_gb");
+				int internalCall = rs.getInt("call_internal_minutes");
+				int externalCall = rs.getInt("call_external_minutes");
 				double price = rs.getDouble("price");
 				
 				JPanel packagePanel = new JPanel();
@@ -100,14 +106,20 @@ public class ServicePanel extends JPanel {
 				JLabel nameLabel = new JLabel("Tên gói: " + name);
 				JLabel durationLabel = new JLabel("Thời lượng: " + duration);
 				JLabel dataLabel = new JLabel("Dung lượng Data: " + data + " GB");
+				JLabel internalCallLabel = new JLabel("Phút gọi nội mạng: " + internalCall + " phút");
+				JLabel externalCallLabel = new JLabel("Phút gọi ngoại mạng: " + externalCall + " phút");
 				
 				nameLabel.setFont(infoFont);
 				durationLabel.setFont(infoFont);
 				dataLabel.setFont(infoFont);
+				internalCallLabel.setFont(infoFont);
+				externalCallLabel.setFont(infoFont);
 				
 				packagePanel.add(nameLabel);
 				packagePanel.add(durationLabel);
 				packagePanel.add(dataLabel);
+				packagePanel.add(internalCallLabel);
+				packagePanel.add(externalCallLabel);
 				
 				JLabel priceLabel = new JLabel("Giá: " + String.format("%,.0f VND", price));
 				priceLabel.setForeground(new Color(200, 0, 0));
@@ -166,7 +178,7 @@ public class ServicePanel extends JPanel {
 			removeBtn.addActionListener(e -> {
 				cart.remove(index);
 				JOptionPane.showMessageDialog(this, "Đã xóa khỏi giỏ hàng.");
-				showCart(); // Refresh dialog
+				showCart(); // Refresh
 			});
 			
 			row.add(removeBtn);
@@ -175,7 +187,6 @@ public class ServicePanel extends JPanel {
 		
 		JOptionPane.showMessageDialog(this, cartPanel, "Giỏ hàng", JOptionPane.PLAIN_MESSAGE);
 	}
-	
 	private void payCart() {
 		String phone = phoneField.getText().trim();
 		if (!phone.matches("\\d{10}")) {
@@ -214,9 +225,7 @@ public class ServicePanel extends JPanel {
 		
 		JLabel qrLabel = new JLabel();
 		try {
-			// Đúng: không có \" ở đầu/cuối
-			ImageIcon qrIcon = new ImageIcon("G:\\z6642314449314_0bae0c1f6d46b87de737b1fc6ebf14cc.jpg");
-			
+			ImageIcon qrIcon = new ImageIcon("C:/Users/Asus/thanhtoan1.jpg");
 			Image img = qrIcon.getImage().getScaledInstance(180, 180, Image.SCALE_SMOOTH);
 			qrLabel.setIcon(new ImageIcon(img));
 		} catch (Exception ex) {
@@ -248,7 +257,7 @@ public class ServicePanel extends JPanel {
 		if (result == 0) {
 			String transactionId = "TXN" + System.currentTimeMillis();
 			String insertTransactionSQL = "INSERT INTO transactions (transaction_id, username, amount, time, status) VALUES (?, ?, ?, NOW(), ?)";
-			String insertItemSQL = "INSERT INTO invoice_items (transaction_id, package_name, price) VALUES (?, ?, ?)";
+			String insertItemSQL = "INSERT INTO transaction_items (transaction_id, package_name, price) VALUES (?, ?, ?)";
 			
 			try (Connection conn = DBConnection.getConnection()) {
 				conn.setAutoCommit(false);
@@ -291,6 +300,7 @@ public class ServicePanel extends JPanel {
 		}
 	}
 	
+	// ==== LỚP NỘI BỘ LƯU GÓI CƯỚC TRONG GIỎ HÀNG ====
 	static class PackageItem {
 		String name;
 		double price;

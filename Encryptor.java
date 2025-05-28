@@ -1,4 +1,5 @@
-package login;// File: Encryptor.java
+package login;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 

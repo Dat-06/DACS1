@@ -1,61 +1,28 @@
-package admin;
-
-// model/Customer.java
+package User;
 
 public class Customer {
-	private String id;
+	private int id;
 	private String name;
-	private String address;
 	private String phone;
-	private String email;  // thêm email
+	private String address;
+	private String email;
+	private String plan; // Gói cước (nếu có)
 	
-	public Customer(String id, String name, String address, String phone, String email) {
+	// Constructor
+	public Customer(int id, String name, String phone, String address, String email, String plan) {
 		this.id = id;
 		this.name = name;
-		this.address = address;
 		this.phone = phone;
-		this.email = email;  // gán email
-	}
-	
-	public String getPhone() {
-		return phone;
-	}
-	
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-	
-	public String getAddress() {
-		return address;
-	}
-	
-	public void setAddress(String address) {
 		this.address = address;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	public String getId() {
-		return id;
-	}
-	
-	public void setId(String id) {
-		this.id = id;
-	}
-	
-	// getter email
-	public String getEmail() {
-		return email;
-	}
-	
-	// setter email
-	public void setEmail(String email) {
 		this.email = email;
+		this.plan = plan;
 	}
+	
+	// Getters (thêm setters nếu cần)
+	public int getId() { return id; }
+	public String getName() { return name; }
+	public String getPhone() { return phone; }
+	public String getAddress() { return address; }
+	public String getEmail() { return email; }
+	public String getPlan() { return plan; }
 }

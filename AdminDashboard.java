@@ -4,11 +4,12 @@ import java.awt.*;
 
 import bieudo.ChartPanelExample;
 import goicuoc.PackagePanel;
-import login.LoginForm;
+//import login.LoginForm;
 import admin.BillingPanel;
 import admin.CustomerPanel;
 import admin.ReportPanel;
 import admin.TransactionHistory;
+import login.LoginForm;
 
 public class AdminDashboard extends JFrame {
 	private JPanel mainPanel;
@@ -49,7 +50,7 @@ public class AdminDashboard extends JFrame {
 			int choice = JOptionPane.showConfirmDialog(this, "Bạn muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION);
 			if (choice == JOptionPane.YES_OPTION) {
 				dispose();
-				new LoginForm(); // Quay lại màn hình đăng nhập
+			new LoginForm();
 			}
 		});
 		
@@ -86,4 +87,6 @@ public class AdminDashboard extends JFrame {
 		add(mainPanel, BorderLayout.CENTER);
 		setVisible(true);
 	}
+	
+
 }

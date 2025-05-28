@@ -185,15 +185,6 @@ public class BillingPanel extends JPanel {
 			transStmt.setString(6, now);
 			transStmt.executeUpdate();
 			
-			FileWriter writer = new FileWriter("hoadon.txt", true);
-			writer.write("KH: " + customerName +
-					", Gói: " + pkg.name +
-					", SDT: " + phone +
-					", Tổng: " + total +
-					", Thời gian: " + now +
-					", Mã GD: " + transactionId + "\n");
-			writer.close();
-			
 			JOptionPane.showMessageDialog(this, "Đã lưu hóa đơn và giao dịch thành công");
 			showInvoice();
 			
@@ -238,17 +229,6 @@ public class BillingPanel extends JPanel {
 			// Thời gian hiện tại
 			String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 			
-			// Lưu giao dịch vào CSDL
-			PreparedStatement transStmt = conn.prepareStatement(
-					"INSERT INTO transactions (transaction_id, username, package_id, amount, months, time) VALUES (?, ?, ?, ?, ?, ?)"
-			);
-			transStmt.setString(1, transactionId);
-			transStmt.setString(2, customerName);
-			transStmt.setString(3, packageId);
-			transStmt.setDouble(4, pkg.price);
-			transStmt.setInt(5, 0); // months (nếu cần dùng, hiện tạm là 0)
-			transStmt.setString(6, now);
-			transStmt.executeUpdate();
 			
 			// Tạo nội dung hóa đơn có mã giao dịch
 			String invoiceText = """

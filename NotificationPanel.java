@@ -5,8 +5,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class NotificationPanel extends JPanel {
-	private JLabel messageLabel;
-	
 	public NotificationPanel() {
 		setLayout(new GridBagLayout());
 		setBackground(Color.WHITE);
@@ -22,7 +20,7 @@ public class NotificationPanel extends JPanel {
 		JLabel iconLabel = new JLabel(UIManager.getIcon("OptionPane.informationIcon"));
 		iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
-		messageLabel = new JLabel("Hiện tại không có thông báo nào.");
+		JLabel messageLabel = new JLabel("Hiện tại không có thông báo nào.");
 		messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
 		messageLabel.setForeground(new Color(70, 70, 70));
 		messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -32,9 +30,5 @@ public class NotificationPanel extends JPanel {
 		box.add(messageLabel);
 		
 		add(box);
-	}
-	
-	public void updateNotification(String message) {
-		messageLabel.setText(message);
 	}
 }

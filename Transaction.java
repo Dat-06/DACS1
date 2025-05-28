@@ -1,5 +1,4 @@
-
-package User;
+package Users.models;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

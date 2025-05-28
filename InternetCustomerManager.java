@@ -1,18 +1,15 @@
 package User;
 
-import ketnoi.DBConnection;
 
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
 
 public class InternetCustomerManager extends JFrame {
-	private String user_id;  // Biến lưu user_id hiện tại
 	private CardLayout cardLayout;
 	private JPanel cardPanel;
 	
-	public InternetCustomerManager(String user_id) throws SQLException {
-		this.user_id = user_id;  // Lưu user_id được truyền vào
+	public InternetCustomerManager(String customerName) throws SQLException {
 		setTitle("Quản Lý Thuê Bao Internet");
 		setSize(1200, 700);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -23,10 +20,10 @@ public class InternetCustomerManager extends JFrame {
 		JPanel header = new JPanel(new BorderLayout());
 		header.setBackground(new Color(25, 118, 210));
 		header.setPreferredSize(new Dimension(getWidth(), 70));
-		
-		// Left side of header (icon + title)
+
+// Left side of header (icon + title)
 		JPanel leftHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-		leftHeader.setOpaque(false);
+		leftHeader.setOpaque(false); // Để màu nền trong suốt
 		
 		JLabel iconLabel = new JLabel();
 		iconLabel.setIcon(UIManager.getIcon("FileView.computerIcon"));
@@ -37,18 +34,22 @@ public class InternetCustomerManager extends JFrame {
 		
 		leftHeader.add(iconLabel);
 		leftHeader.add(titleLabel);
-		
-		// Right side of header (greeting)
+
+// Right side of header (greeting)
 		JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-		rightHeader.setOpaque(false);
-		JLabel greetingLabel = new JLabel("Xin chào, " + user_id + "!");
+		rightHeader.setOpaque(false); // Để nền trong suốt
+		
+		JLabel greetingLabel = new JLabel("Xin chào bạn!");
 		greetingLabel.setForeground(Color.WHITE);
-		greetingLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+		greetingLabel.setFont(new Font("Segoe UI", Font.BOLD, 20)); // Font giống HDPhone
+		
 		
 		rightHeader.add(greetingLabel);
-		
+
+// Add both sides to header
 		header.add(leftHeader, BorderLayout.WEST);
 		header.add(rightHeader, BorderLayout.EAST);
+		;
 		
 		// Sidebar
 		JPanel sidebar = new JPanel();
@@ -69,10 +70,10 @@ public class InternetCustomerManager extends JFrame {
 		cardPanel = new JPanel(cardLayout);
 		
 		HomePanel home = new HomePanel();
-		CustomerManagerPanel customerPanel = new CustomerManagerPanel(user_id);  // truyền user_id vào để chỉ hiện thông tin user đó
-		TransactionHistoryPanel historyPanel = new TransactionHistoryPanel(user_id); // cũng truyền user_id
+		CustomerManagerPanel customerPanel = new CustomerManagerPanel();
+		TransactionHistoryPanel historyPanel = new TransactionHistoryPanel();
 		ServicePanel servicePanel = new ServicePanel(historyPanel);
-		NotificationPanel notifyPanel = new NotificationPanel();
+		Users.panels.NotificationPanel notifyPanel = new Users.panels.NotificationPanel();
 		
 		cardPanel.add(home, "Trang chủ");
 		cardPanel.add(customerPanel, "Quản lý thuê bao của bạn");

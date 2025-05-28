@@ -10,7 +10,7 @@ import java.sql.*;
 public class TransactionHistoryPanel extends JPanel {
 	private DefaultTableModel tableModel;
 	
-	public TransactionHistoryPanel(String user_id) {
+	public TransactionHistoryPanel() {
 		setLayout(new BorderLayout());
 		
 		String[] columns = {"Số điện thoại", "Tên gói", "Giá tiền", "Thời gian thanh toán"};
@@ -29,11 +29,13 @@ public class TransactionHistoryPanel extends JPanel {
 		tableModel.setRowCount(0); // Xóa dữ liệu cũ
 		
 		String sql = """
-            SELECT customer_id, package_name, price, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS time
-            FROM invoice_items
-            WHERE customer_id = ?
-            ORDER BY created_at DESC
-        """;
+        SELECT i.customer_id, i.package_name, i.price,
+               DATE_FORMAT(i.created_at, '%Y-%m-%d %H:%i:%s') AS time
+        FROM invoice_items i
+        JOIN customers c ON i.customer_id = c.id
+        WHERE c.phone = ?
+        ORDER BY i.created_at DESC
+    """;
 		
 		try (Connection conn = DBConnection.getConnection();
 		     PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -42,7 +44,7 @@ public class TransactionHistoryPanel extends JPanel {
 			ResultSet rs = ps.executeQuery();
 			
 			while (rs.next()) {
-				String customerId = rs.getString("customer_id");
+				String customerId = rs.getString("id");
 				String packageName = rs.getString("package_name");
 				int price = (int) rs.getDouble("price");
 				String time = rs.getString("time");
@@ -54,4 +56,5 @@ public class TransactionHistoryPanel extends JPanel {
 			JOptionPane.showMessageDialog(this, "Lỗi tải lịch sử giao dịch!", "Lỗi", JOptionPane.ERROR_MESSAGE);
 		}
 	}
+	
 }

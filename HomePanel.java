@@ -1,4 +1,3 @@
-
 // File: panels/HomePanel.java
 package User;
 
